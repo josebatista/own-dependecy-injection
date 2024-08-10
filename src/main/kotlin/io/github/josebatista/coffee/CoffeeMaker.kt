@@ -1,7 +1,10 @@
 package io.github.josebatista.coffee
 
-class CoffeeMaker(logger: CoffeeLogger, heater: Heater, pump: Pump) {
+class CoffeeMaker(private val logger: CoffeeLogger, private val heater: Heater, private val pump: Pump) {
     fun brew() {
-        TODO("Not yet implemented")
+        heater.on()
+        pump.pump()
+        logger.log(" [_]P coffee! [_]P")
+        heater.off()
     }
 }

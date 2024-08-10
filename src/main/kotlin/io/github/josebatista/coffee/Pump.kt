@@ -1,3 +1,5 @@
 package io.github.josebatista.coffee
 
-interface Pump
+interface Pump {
+    fun pump()
+}

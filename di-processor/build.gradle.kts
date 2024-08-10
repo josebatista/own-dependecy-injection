@@ -1,21 +1,19 @@
+val kspVersion: String by project
+
 plugins {
-    id("com.google.devtools.ksp")
     kotlin("jvm")
 }
 
 group = "io.github.josebatista"
-version = "1.0-SNAPSHOT"
+version = "unspecified"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation(project(":di-lib"))
-    ksp(project(":di-processor"))
-
+    implementation("com.google.devtools.ksp:symbol-processing-api:${kspVersion}")
     api("javax.inject:javax.inject:1")
-
     testImplementation(kotlin("test"))
 }
 

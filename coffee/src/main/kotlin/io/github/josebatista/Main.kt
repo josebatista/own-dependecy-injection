@@ -7,6 +7,7 @@ import io.github.josebatista.coffee.Heater
 import io.github.josebatista.coffee.Pump
 import io.github.josebatista.coffee.Thermosiphon
 import io.github.josebatista.di.FactoryHolderModule
+import io.github.josebatista.di.InjectProcessorModule
 import io.github.josebatista.di.ObjectGraph
 import io.github.josebatista.di.ReflectiveModule
 import io.github.josebatista.di.extension.bind
@@ -32,6 +33,10 @@ fun main() {
     val (coffeeMaker4, reflectiveTime) = createWithReflectiveModule()
     coffeeMaker4.brew()
     println("[4- REFLECTIVE MODULE]: $reflectiveTime\n\n")
+
+    val (coffeeMaker5, processorTime) = createWithInjectProcessorModule()
+    coffeeMaker5.brew()
+    println("[5- INJECT PROCESSOR MODULE]: $processorTime\n\n")
 }
 
 private fun createWithManualDI() = measureTimedValue {
@@ -70,6 +75,7 @@ private fun createWithFactoryHolderModules() = measureTimedValue {
 }
 
 private fun createWithReflectiveModule() = measureTimedValue {
+    // Google Guice
     val objectGraph = ObjectGraph(
         FactoryHolderModule().apply {
             bind<Heater, ElectricHeater>()
@@ -79,3 +85,16 @@ private fun createWithReflectiveModule() = measureTimedValue {
     )
     objectGraph.get<CoffeeMaker>()
 }
+
+private fun createWithInjectProcessorModule() = measureTimedValue {
+    // Dagger 1
+    val objectGraph = ObjectGraph(
+        FactoryHolderModule().apply {
+            bind<Heater, ElectricHeater>()
+            bind<Pump, Thermosiphon>()
+        },
+        InjectProcessorModule()
+    )
+    objectGraph.get<CoffeeMaker>()
+}
+

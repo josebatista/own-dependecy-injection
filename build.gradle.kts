@@ -11,6 +11,8 @@ repositories {
 
 dependencies {
     implementation(project(":di-lib"))
+    api("javax.inject:javax.inject:1")
+
     testImplementation(kotlin("test"))
 }
 

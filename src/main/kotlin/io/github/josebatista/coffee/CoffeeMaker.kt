@@ -1,6 +1,12 @@
 package io.github.josebatista.coffee
 
-class CoffeeMaker(private val logger: CoffeeLogger, private val heater: Heater, private val pump: Pump) {
+import javax.inject.Inject
+
+class CoffeeMaker @Inject constructor(
+    private val logger: CoffeeLogger,
+    private val heater: Heater,
+    private val pump: Pump
+) {
     fun brew() {
         heater.on()
         pump.pump()

@@ -1,6 +1,10 @@
 package io.github.josebatista.coffee
 
-class ElectricHeater(private val logger: CoffeeLogger) : Heater {
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class ElectricHeater @Inject constructor(private val logger: CoffeeLogger) : Heater {
     override var isHot = false
         private set
 

@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     implementation("com.google.devtools.ksp:symbol-processing-api:${kspVersion}")
-    api("javax.inject:javax.inject:1")
+    implementation(project(":di-lib"))
     testImplementation(kotlin("test"))
 }
 

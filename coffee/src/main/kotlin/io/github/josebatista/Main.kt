@@ -7,6 +7,7 @@ import io.github.josebatista.coffee.Heater
 import io.github.josebatista.coffee.Pump
 import io.github.josebatista.coffee.Thermosiphon
 import io.github.josebatista.di.FactoryHolderModule
+import io.github.josebatista.di.GeneratedCoffeeComponent
 import io.github.josebatista.di.InjectProcessorModule
 import io.github.josebatista.di.ObjectGraph
 import io.github.josebatista.di.ReflectiveModule
@@ -37,6 +38,10 @@ fun main() {
     val (coffeeMaker5, processorTime) = createWithInjectProcessorModule()
     coffeeMaker5.brew()
     println("[5- INJECT PROCESSOR MODULE]: $processorTime\n\n")
+
+    val (coffeeMaker6, componentProcessorTime) = createWithInjectComponentProcessor()
+    coffeeMaker6.brew()
+    println("[6- INJECT COMPONENT PROCESSOR MODULE]: $componentProcessorTime\n\n")
 }
 
 private fun createWithManualDI() = measureTimedValue {
@@ -96,5 +101,10 @@ private fun createWithInjectProcessorModule() = measureTimedValue {
         InjectProcessorModule()
     )
     objectGraph.get<CoffeeMaker>()
+}
+
+private fun createWithInjectComponentProcessor() = measureTimedValue {
+    // Dagger 2
+    GeneratedCoffeeComponent().coffeeMaker
 }
 

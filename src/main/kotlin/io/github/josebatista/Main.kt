@@ -13,71 +13,69 @@ import io.github.josebatista.di.extension.bind
 import io.github.josebatista.di.extension.get
 import io.github.josebatista.di.extension.install
 import io.github.josebatista.di.extension.installSingleton
-import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
 
 fun main() {
 
-    // Manual Inject
-    val manualTime = measureTime {
-        val logger = CoffeeLogger()
-        val heater: Heater = ElectricHeater(logger = logger)
-        val pump: Pump = Thermosiphon(logger = logger, heater = heater)
-        val coffeeMaker = CoffeeMaker(logger = logger, heater = heater, pump = pump)
-        coffeeMaker.brew()
+    val (coffeeMaker1, manualTime) = createWithManualDI()
+    coffeeMaker1.brew()
+    println("[1- MANUAL]: $manualTime\n\n")
+
+    val (coffeeMaker2, factorHolderModuleTime) = createWithFactoryHolderModule()
+    coffeeMaker2.brew()
+    println("[2- FACTORY HOLDER MODULE]: $factorHolderModuleTime\n\n")
+
+    val (coffeeMaker3, factorHolderModulesTime) = createWithFactoryHolderModules()
+    coffeeMaker3.brew()
+    println("[3- FACTORY HOLDER MODULE]: $factorHolderModulesTime\n\n")
+
+    val (coffeeMaker4, reflectiveTime) = createWithReflectiveModule()
+    coffeeMaker4.brew()
+    println("[4- REFLECTIVE MODULE]: $reflectiveTime\n\n")
+}
+
+private fun createWithManualDI() = measureTimedValue {
+    val logger = CoffeeLogger()
+    val heater: Heater = ElectricHeater(logger = logger)
+    val pump: Pump = Thermosiphon(logger = logger, heater = heater)
+    CoffeeMaker(logger = logger, heater = heater, pump = pump)
+}
+
+private fun createWithFactoryHolderModule() = measureTimedValue {
+    val module = FactoryHolderModule().apply {
+        bind<Heater, ElectricHeater>()
+        bind<Pump, Thermosiphon>()
+        installSingleton { CoffeeLogger() }
+        installSingleton { ElectricHeater(logger = get()) }
+        install { Thermosiphon(logger = get(), heater = get()) }
+        install { CoffeeMaker(logger = get(), heater = get(), pump = get()) }
     }
-    println("[MANUAL]: $manualTime")
+    val objectGraph = ObjectGraph(module)
+    objectGraph.get<CoffeeMaker>()
+}
 
-//    //ObjectGraph
-//    val objectGraph = ObjectGraph()
-//    val coffeeMaker1 = objectGraph.get(CoffeeMaker::class.java)
-//    val coffeeMaker2 = objectGraph[CoffeeMaker::class.java]
-//
-//    // reified Extension
-//    val coffeeMaker3 = objectGraph.get<CoffeeMaker>()
-//    val coffeeMaker4: CoffeeMaker = objectGraph.get()
-//
-//    // module
-//    val module = FactoryHolderModule()
-//    module.install(CoffeeMaker::class.java) { objectGraphFactory ->
-//        CoffeeMaker(objectGraphFactory.get(), objectGraphFactory.get(), objectGraphFactory.get())
-//    }
-//
-//    val module1 = FactoryHolderModule()
-//    module1.install { CoffeeMaker(get(), get(), get()) }
+private fun createWithFactoryHolderModules() = measureTimedValue {
+    val logModule = FactoryHolderModule().apply {
+        installSingleton { CoffeeLogger() }
+    }
+    val partsModule = FactoryHolderModule().apply {
+        installSingleton<Heater> { ElectricHeater(get()) }
+        install<Pump> { Thermosiphon(get(), get()) }
+    }
+    val appModule = FactoryHolderModule().apply {
+        install { CoffeeMaker(get(), get(), get()) }
+    }
+    val objectGraph = ObjectGraph(logModule, partsModule, appModule)
+    objectGraph.get<CoffeeMaker>()
+}
 
-    println("\n===============\n")
-
-    // Library Injection
-    val libraryTime = measureTime {
-        val module = FactoryHolderModule().apply {
+private fun createWithReflectiveModule() = measureTimedValue {
+    val objectGraph = ObjectGraph(
+        FactoryHolderModule().apply {
             bind<Heater, ElectricHeater>()
             bind<Pump, Thermosiphon>()
-            installSingleton { CoffeeLogger() }
-            installSingleton { ElectricHeater(logger = get()) }
-            install { Thermosiphon(logger = get(), heater = get()) }
-            install { CoffeeMaker(logger = get(), heater = get(), pump = get()) }
-        }
-        val objectGraph = ObjectGraph(module)
-        val coffeeMaker1: CoffeeMaker = objectGraph.get()
-        coffeeMaker1.brew()
-    }
-    println("[LIBRARY]: $libraryTime")
-
-    println("\n===============\n")
-
-    // Reflection (Guice)
-    val reflectiveTime = measureTime {
-        val bindingModule = FactoryHolderModule().apply {
-            bind<Heater, ElectricHeater>()
-            bind<Pump, Thermosiphon>()
-        }
-
-        val objectGraph1 = ObjectGraph(
-            bindingModule,
-            ReflectiveModule()
-        )
-        val coffeeMaker2: CoffeeMaker = objectGraph1.get()
-        coffeeMaker2.brew()
-    }
-    println("[REFLECTIVE]: $reflectiveTime")
+        },
+        ReflectiveModule()
+    )
+    objectGraph.get<CoffeeMaker>()
 }
